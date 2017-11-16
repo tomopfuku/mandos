@@ -16,6 +16,33 @@ position = {"A":[0],"C":[1],"G":[2],"T":[3],"-":[0,1,2,3],"-":[0,1,2,3],"N":[0,1
 
 LARGE = 10000000
 
+def calc_mk_like(sitels,tree,seqs,optimize=False):
+    site_liks = []
+    for i in range(len(sitels)):
+        cur_sites = sitels[i]
+        cur_st = cur_sites[0]-1
+        cur_end = cur_sites[1]
+        if i+1 == 1:
+            state_space = 2
+        else:
+            state_space = i+1
+        match_tips_and_seqs(tree,seqs)
+        
+        # set rmatrix and base freqs with Mk rate = 1.0
+        rmatrix,basefreq = set_multi_jc_rmatrix_basefreq(state_space,1.) 
+        if optimize == False:
+            curcost = calc_mult_tree_likelihood(tree,rmatrix,basefreq,range(cur_st,cur_end),False)
+            site_liks.append(curcost)
+        else:
+            #set arbitrary starting brlens
+            for n in tree.iternodes():
+                n.length = 0.01
+            
+            #optimize brlens
+            res = optimize_brlen(tree,range(cur_st,cur_end),rmatrix,basefreq)
+            site_liks.append(res[1])
+    return -sum(site_liks)
+
 def match_tips_and_seqs(tree,seqs):
     lvs = [i for i in tree.iternodes() if i.label != ""]
     for i in lvs:

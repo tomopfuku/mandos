@@ -29,9 +29,25 @@ These can be read in like:
 
 ## Character data
 
-Coming soon!
+Discrete character matrices should be in phylip format and can be read in like:
 
-# A couple simple analyses
+        mandos.tree_utils2.read_phylip_file("examples/cetaceans/cetacean.phy")
+
+Handling of continuous traits is a bit of a mess right now, but will be sorted soon.
+
+## Partitioning by state space
+
+It is probably sensible to specify a separate substitution matrix for each state space represented in the data (eg., binary vs. 3-state). You can do this by writing a RAxML-style partitions file:
+
+        part0,1-10
+        part1,11-20
+
+There should be a script in the scripts/ folder that can sort traits and generate this file. You can now read in these partitions like:
+
+        sitels = mandos.tree_utils2.read_partition_file("examples/cetaceans/cetacean.phy.models")
+
+
+# A couple of simple analyses
 
 ## Scaling a tree to stratigraphic ranges
 
@@ -54,4 +70,13 @@ We can then optimize the node heights using the preservation model of Huelsenbec
 
         opt = mandos.stratoML.optim_lambda_heights(tree,ranges)
 
+## Calculating discrete character likelihood
+
+After having read in character data and partitions (if applicable), we can calculate their likelihood along a tree and optimize branch lengths if we wish.
+
+        morpholike = mandos.tree_likelihood_calculator.calc_mk_like(sitels,tree,seqs,False)
+
+if we want to optimize branch lengths:
+
+        morpholike = mandos.tree_likelihood_calculator.calc_mk_like(sitels,tree,seqs,True)
 

@@ -1,4 +1,5 @@
 import tree_reader2
+import tree_likelihood_calculator as tlc
 from node2 import Node
 from sequence import Sequence
 from copy import deepcopy
@@ -20,34 +21,7 @@ def add_root_to_SA_tree(tree):
     tree.parent = root
     return root
 
-def MK_likelihood(sitels,tree,seqs):
-    site_liks = []
-    for i in range(len(sitels)):
-        cur_sites = sitels[i]
-        cur_st = cur_sites[0]-1
-        cur_end = cur_sites[1]
-        #print cur_st,cur_end
-        if i+1 == 1:
-            state_space = 2
-        else:
-            state_space = i+1
-        #print cur_st,cur_end
-        #sites = seqs[1].seq[cur_st:cur_end]#len(seqs[0].seq)
-        match_tips_and_seqs(tree,seqs)
-        rmatrix,basefreq = set_multi_jc_rmatrix_basefreq(state_space,1.)
-        #for n in tree.iternodes():
-        #    n.length = 0.0
-        curcost = calc_mult_tree_likelihood(tree,rmatrix,basefreq,range(cur_st,cur_end),False)
-        res = optimize_brlen(tree,range(cur_st,cur_end),rmatrix,basefreq)
-        for n in tree.iternodes():
-            n.length = 0.01
-        curcost = calc_mult_tree_likelihood(tree,rmatrix,basefreq,range(cur_st,cur_end),False)
-        start = [0.1]
-        res1 = optimize_jcrateparams(start,tree,range(cur_st,cur_end),state_space)
-        rmatrix,basefreq = set_multi_jc_rmatrix_basefreq(state_space,res1[0])
-        res = optimize_brlen(tree,range(cur_st,cur_end),rmatrix,basefreq)
-        site_liks.append(res[1])
-    return -sum(site_liks)
+
 
 def find_node_by_label(tree,label):
     for i in tree.iternodes():
