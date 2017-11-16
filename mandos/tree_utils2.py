@@ -11,7 +11,7 @@ def tree_AIC(tree,log_likelihood,model_param_count):
     return aic
 
 def add_root_to_SA_tree(tree):
-    root = phylo3.Node()
+    root = node2.Node()
     root.children.append(tree)
     root.label = ""
     root.height = tree.height + tree.length
@@ -124,11 +124,6 @@ def read_phylip_file(infilename):
         seqls.append(tseq)
     return seqls
 
-def prune_subtree(tree,names): #names should be descendants of node to be extracted 
-    mrca = getMRCA(names,tree)
-    tax = [i.label for i in mrca.leaves()]
-    prune_SA(tree,tax)
-    return mrca#.parent
 
 def prune_SA(tree,taxa): #taxa should be list of all taxa present in the subtree to be tested
     for i in tree.iternodes():
@@ -140,6 +135,7 @@ def prune_SA(tree,taxa): #taxa should be list of all taxa present in the subtree
                     i.parent.remove_child(k)
                     i.parent = None
             i.length = 0.0
+            #add_root_to_SA_tree(i)
             return i#.parent
 
 def make_ancestor(tree,tax_label):

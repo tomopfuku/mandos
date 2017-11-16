@@ -8,7 +8,7 @@ from scipy.optimize import fmin_bfgs
 import random
 import sys
 
-#these functions are based on unpublished code by Stephen Smith 
+#these functions are based on unpublished code written by Stephen Smith 
 
 #move to datatype
 position = {"A":[0],"C":[1],"G":[2],"T":[3],"-":[0,1,2,3],"-":[0,1,2,3],"N":[0,1,2,3],"Y":[1,3],"R":[0,2],"W":[0,3],"M":[0,1],"B":[2,1,3],"V":[2,0,1],"S":[2,1],"K":[2,3],"H":[0,3,1]}
@@ -16,7 +16,7 @@ position = {"A":[0],"C":[1],"G":[2],"T":[3],"-":[0,1,2,3],"-":[0,1,2,3],"N":[0,1
 
 LARGE = 10000000
 
-def calc_mk_like(sitels,tree,seqs,optimize=False):
+def calc_mk_like(sitels,tree,seqs,optimize=False,random_start = True):
     site_liks = []
     for i in range(len(sitels)):
         cur_sites = sitels[i]
@@ -37,7 +37,7 @@ def calc_mk_like(sitels,tree,seqs,optimize=False):
             #set arbitrary starting brlens
             
             #optimize brlens
-            res = optimize_brlen(tree,range(cur_st,cur_end),rmatrix,basefreq)
+            res = optimize_brlen(tree,range(cur_st,cur_end),rmatrix,basefreq,random_start)
             site_liks.append(res[1])
     return -sum(site_liks)
 
@@ -166,26 +166,22 @@ def calc_params_treebl(params,tree,sites,rmatrix,basefreq,alpha=None,cats=None):
                 return LARGE
             i.length = params[count]
             count += 1
-        #else:
-            #print i.length
     like = -1
     if alpha != None:
-        like = calc_nuc_tree_likelihood_gamma(tree,rmatrix,basefreq,sites,alpha,cats)
+        like = calc_nuc_tree_likelihood_gamma(tree,rmatrix,basefreq,sites,alpha,cats) # doesn't work right yet
     else:
         like = calc_mult_tree_likelihood(tree,rmatrix,basefreq,sites)
-    #print tree.get_newick_repr(True)
-    #print like
     if like < 0 or isnan(like):
         return LARGE
     return like
 
-def optimize_brlen(tree,sites,rmatrix,basefreq,alpha=None,cats=None):
+def optimize_brlen(tree,sites,rmatrix,basefreq,random_start=False,alpha=None,cats=None):
     blstart = []
     for i in tree.iternodes():
         if i != tree:
-            blstart.append(i.length)
-            #blstart.append(random.uniform(0,0.3))
-
+            if random_start == True:
+                i.length = random.uniform(0,0.3)
+            blstart.append(i.length)               
     res = fmin_bfgs(calc_params_treebl,blstart,args=(tree,sites,rmatrix,basefreq,alpha,cats),full_output=True,disp=False)
     #print tree.get_newick_repr(True)
     return res
