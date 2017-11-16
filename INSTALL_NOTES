@@ -1,0 +1,11 @@
+setup.py now uses cython properly
+
+to build and install run:
+
+```
+python setup.py build_ext --inplace
+python setup.py build
+python setup.py install
+```
+
+that should work.

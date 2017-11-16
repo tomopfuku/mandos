@@ -1,0 +1,11 @@
+IQ-TREE multicore version 1.5.4 for Linux 64-bit built Apr  2 2017
+Copyright (c) 2011-2017 by Bui Quang Minh, Nguyen Lam Tung,
+Olga Chernomor, Heiko Schmidt, and Arndt von Haeseler.
+
+Host:    notanarch (AVX2, FMA3, 7 GB RAM)
+Command: iqtree-omp -s examples/ lev_edit.phy -st MORPH -nt 2 -m MK+ASC -z test_trees/tree_set.trees
+Seed:    37363 (Using SPRNG - Scalable Parallel Random Number Generator)
+Time:    Tue Apr  4 18:45:47 2017
+Kernel:  AVX+FMA - 2 threads (4 CPU cores detected)
+
+Reading alignment file examples/ ... ERROR: Cannot read file examples/
