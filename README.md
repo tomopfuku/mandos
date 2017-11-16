@@ -1,8 +1,8 @@
-# mandos
+# MANDOS
 
 **M**aking and **AN**alysing **D**endrograms from **O**ccurrences in **S**tratigraphy
 
-#Installation
+# Setting up
 
 Should be able to just run:
 
