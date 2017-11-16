@@ -31,7 +31,7 @@ These can be read in like:
 
 Discrete character matrices should be in phylip format and can be read in like:
 
-        mandos.tree_utils2.read_phylip_file("examples/cetaceans/cetacean.phy")
+        traits = mandos.tree_utils2.read_phylip_file("examples/cetaceans/cetacean.phy")
 
 Handling of continuous traits is a bit of a mess right now, but will be sorted soon.
 
@@ -66,7 +66,7 @@ Note that the height initialisation currently doesn't work well with trees that 
 
 the *tax_name* can be either a single taxon or a comma-separated series
 
-We can then optimize the node heights using the preservation model of Huelsenbeck and Rannala 1997:
+We can then optimize the node heights and calculate the stratigraphic likelihood using the preservation model of Huelsenbeck and Rannala 1997:
 
         opt = mandos.stratoML.optim_lambda_heights(tree,ranges)
 
@@ -79,4 +79,20 @@ After having read in character data and partitions (if applicable), we can calcu
 if we want to optimize branch lengths:
 
         morpholike = mandos.tree_likelihood_calculator.calc_mk_like(sitels,tree,seqs,True)
+
+Branch length optimization is currently really slow. This should improve as I continue the move to Cython and optimize things a bit.
+
+### Morphological likelihood on sampled ancestor trees
+
+Can also calculate likelihood on an SA tree (although may want to optimize branch lengths if comparing to bifurcating, since involves a topological rearrangement)
+
+        mandos.tree_utils2.make_ancestor(tree, *tax_name*)
+        morpholike = mandos.tree_likelihood_calculator.calc_mk_like(sitels,tree,seqs,True)
+
+If you are comparing between anagenetic and cladogenetic arrangements, you can prune out the relevant subtree to speed up optimization
+
+        subtree = mandos.tree_utils2.prune_SA(tree,["tax1","tax2","tax3"])
+
+The first argument should be the tree, and the second should be the list of taxa contained in the relevant subtree.
+
 

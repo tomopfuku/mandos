@@ -8,7 +8,7 @@ from scipy.optimize import fmin_bfgs
 import random
 import sys
 
-#these functions contributed by Stephen Smith 
+#these functions are based on unpublished code by Stephen Smith 
 
 #move to datatype
 position = {"A":[0],"C":[1],"G":[2],"T":[3],"-":[0,1,2,3],"-":[0,1,2,3],"N":[0,1,2,3],"Y":[1,3],"R":[0,2],"W":[0,3],"M":[0,1],"B":[2,1,3],"V":[2,0,1],"S":[2,1],"K":[2,3],"H":[0,3,1]}
@@ -35,8 +35,6 @@ def calc_mk_like(sitels,tree,seqs,optimize=False):
             site_liks.append(curcost)
         else:
             #set arbitrary starting brlens
-            for n in tree.iternodes():
-                n.length = 0.01
             
             #optimize brlens
             res = optimize_brlen(tree,range(cur_st,cur_end),rmatrix,basefreq)
@@ -186,10 +184,43 @@ def optimize_brlen(tree,sites,rmatrix,basefreq,alpha=None,cats=None):
     for i in tree.iternodes():
         if i != tree:
             blstart.append(i.length)
-            blstart.append(random.uniform(0,0.3))
+            #blstart.append(random.uniform(0,0.3))
 
     res = fmin_bfgs(calc_params_treebl,blstart,args=(tree,sites,rmatrix,basefreq,alpha,cats),full_output=True,disp=False)
     #print tree.get_newick_repr(True)
+    return res
+
+def calc_params_treebl_uni(param,br_num,tree,sites,rmatrix,basefreq,alpha=None,cats=None):
+    if param[0] < 0:
+        return LARGE
+    count = 0
+    for i in tree.iternodes():
+        if i != tree:
+            if count == br_num:
+                i.length = param[0]
+            count += 1
+    like = -1
+    if alpha != None:
+        like = calc_nuc_tree_likelihood_gamma(tree,rmatrix,basefreq,sites,alpha,cats)
+    else:
+        like = calc_mult_tree_likelihood(tree,rmatrix,basefreq,sites)
+    if like < 0 or isnan(like):
+        return LARGE
+    return like
+
+def optimize_brlen_uni(tree,sites,rmatrix,basefreq,alpha=None,cats=None,random_start=False):
+    count = 0
+    for i in tree.iternodes():
+        if i == tree:
+            continue
+        if random_start:
+            i.length = random.uniform(0.0001,0.3)
+        else:
+            blstart = [i.length]
+        res = fmin_bfgs(calc_params_treebl_uni,blstart,args=(count,tree,sites,rmatrix,basefreq,alpha,cats),full_output=True,disp=False)
+        i.length = res[0][0]
+        print i.length
+        count += 1
     return res
 
 def optimize_rateparams(a,tree,sites,alpha=None,cats=None):

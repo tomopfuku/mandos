@@ -22,7 +22,6 @@ def add_root_to_SA_tree(tree):
     return root
 
 
-
 def find_node_by_label(tree,label):
     for i in tree.iternodes():
         if i.label == label:
@@ -135,58 +134,13 @@ def prune_SA(tree,taxa): #taxa should be list of all taxa present in the subtree
     for i in tree.iternodes():
         if i.istip:
             continue
-        if [j.label for j in i.leaves()] == taxa:
+        if set([j.label for j in i.leaves()]) == set(taxa):
             for k in i.parent.children:
                 if k != i:
                     i.parent.remove_child(k)
                     i.parent = None
             i.length = 0.0
             return i#.parent
-
-def getMRCATraverse(curn1, curn2):
-    mrca = None
-    #get path to root for first node
-    path1 = []
-    parent = curn1
-    path1.append(parent)
-    while parent != None:
-        path1.append(parent);
-        if parent.parent != None:
-            parent = parent.parent
-        else:
-            break
-    #find first match between this node and the first one
-    parent = curn2
-    x = True;
-    while x == True:
-        for i in range(len(path1)):
-            if parent == path1[i]:
-                mrca = parent
-                x = False
-                break
-        parent = parent.parent
-    return mrca
-
-def getMRCA(innames, tree):
-    mrca = None
-    if len(innames) == 1:
-        return None
-    else:
-        outgroup = []
-        for name in innames:
-            for i in range(len(tree.leaves())):
-                if tree.leaves()[i].label == name:
-                    outgroup.append(tree.leaves()[i])
-        cur2 = None
-        tempmrca = None
-        #print [i.label for i in outgroup]
-        cur1 = outgroup.pop()
-        while len(outgroup)>0:
-            cur2 = outgroup.pop()
-            tempmrca = getMRCATraverse(cur1,cur2)
-            cur1 = tempmrca
-        mrca = cur1
-    return mrca
 
 def make_ancestor(tree,tax_label):
     for node in tree.iternodes():
@@ -199,6 +153,7 @@ def make_ancestor(tree,tax_label):
             par.length += node.length
             par.height = node.height
             par.remove_child(node)
+            par.istip = True
             if par.height >= par.children[0].upper:
                 par.children[0].length -= par.length
             
