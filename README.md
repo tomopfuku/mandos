@@ -39,7 +39,6 @@ Obviously, need to import
 
         import mandos
 
-
 After reading in your tree and range data, we want to match the ranges to the tree object and initialise the heights and branch lengths:
 
         mandos.tree_utils2.match_strat(tree,ranges)
