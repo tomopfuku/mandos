@@ -3,3 +3,6 @@
 *swp
 *phyx*
 build/
+*.c
+*.so
+*.html
