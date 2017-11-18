@@ -30,6 +30,11 @@ extensions = [
         ["mandos/calc_bm_likelihood.pyx"],
         include_dirs=[numpy.get_include()],
     ),
+    Extension(
+        "mandos.tree_likelihood_calculator",
+        ["mandos/tree_likelihood_calculator.pyx"],
+        include_dirs=[numpy.get_include()],
+    ),
 ]
 
 

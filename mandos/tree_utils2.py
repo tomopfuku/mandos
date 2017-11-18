@@ -10,18 +10,6 @@ def tree_AIC(tree,log_likelihood,model_param_count):
     aic = (2*k) - (2*(log_likelihood))
     return aic
 
-def add_root_to_SA_tree(tree):
-    root = node2.Node()
-    root.children.append(tree)
-    root.label = ""
-    root.height = tree.height + tree.length
-    root.length = 0.0
-    root.isroot = True
-    tree.isroot = False
-    tree.parent = root
-    return root
-
-
 def find_node_by_label(tree,label):
     for i in tree.iternodes():
         if i.label == label:
@@ -139,21 +127,29 @@ def prune_SA(tree,taxa): #taxa should be list of all taxa present in the subtree
             return i#.parent
 
 def make_ancestor(tree,tax_label):
-    for node in tree.iternodes():
-        if node.label == tax_label:
-            par = node.parent
-            par.label = node.label
-            par.upper = node.upper
-            par.lower = node.lower
-            par.num_occurrences = node.num_occurrences
-            par.length += node.length
-            par.height = node.height
-            par.remove_child(node)
-            par.istip = True
-            if par.height >= par.children[0].upper:
-                par.children[0].length -= par.length
-            
-            
+    taxa = tax_label.split(",")
+    for t in taxa:
+        for node in tree.iternodes():
+            if node.label == t:
+                par = node.parent
+                par.label = node.label
+                par.upper = node.upper
+                par.lower = node.lower
+                if par.parent == None:
+                    newroot = Node()
+                    newroot.add_child(par)
+                else:
+                    newroot = tree
+                par.length += node.length
+                par.height = node.height
+                par.num_occurrences = node.num_occurrences
+                old_length = node.length
+                par.remove_child(node)
+                par.istip = True
+                par.children[0].length -= old_length 
+    
+    #print newroot.get_newick_repr(True) 
+    return newroot         
 
 
 def read_partition_file(fl): #reads RAxML style partition file

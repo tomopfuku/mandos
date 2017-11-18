@@ -85,6 +85,11 @@ if we want to optimize branch lengths:
 
 Branch length optimization is currently really slow. This should improve as I continue the move to Cython and optimize things a bit.
 
+For good measure, here are the arguments:
+
+        calc_mk_like(sitels,tree,seqs,optimize=False,random_start = True)
+
+
 ### Morphological likelihood on sampled ancestor trees
 
 We can also calculate the character likelihood on a tree containing sampled (direct) ancestors. You may want to optimize branch lengths if comparing to bifurcating, since this involves a topological rearrangement. There are more efficient ways of doing this than are currently implemented here, but can run the following for now:
@@ -108,7 +113,12 @@ When weighing between cladogenetic and anagenetic trees, we need to use somethin
 
 the last argument should be the number of parameters (_k_). _k_ = 1 for each partition in the analyses when using Mk or single rate Brownian motion. 
 
+![Alt text](examples/likelihood.png?raw=true "Likelihood calculation on a single character")
+
+
 ## Combining character and stratigraphic data
 
 We might want to evaluate trees using both stratigraphic and character data.
+
+
 
