@@ -113,7 +113,7 @@ When weighing between cladogenetic and anagenetic trees, we need to use somethin
 
 the last argument should be the number of parameters (_k_). _k_ = 1 for each partition in the analyses when using Mk or single rate Brownian motion. 
 
-![Alt text](examples/likelihood.png "Likelihood calculation on a single character")
+![alt text](examples/likelihood.png "likelihood calculation on a single character")
 
 
 ## Combining character and stratigraphic data
