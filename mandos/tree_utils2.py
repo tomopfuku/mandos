@@ -5,8 +5,8 @@ from sequence import Sequence
 from copy import deepcopy
 import sys
 
-def tree_AIC(tree,log_likelihood,model_param_count):
-    k = tree.nnodes("all") + model_param_count
+def aic(log_likelihood,model_param_count):
+    k =  model_param_count
     aic = (2*k) - (2*(log_likelihood))
     return aic
 
@@ -135,34 +135,41 @@ def make_ancestor(tree,tax_label):
                 par.label = node.label
                 par.upper = node.upper
                 par.lower = node.lower
-                if par.parent == None:
+                if par.parent == None: # need to make a new root if the new SA is outgroup 
                     newroot = Node()
                     newroot.add_child(par)
+                    tree = newroot
+                    par.length += node.length
+                    par.height = node.height
+                    par.num_occurrences = node.num_occurrences
+                    par.remove_child(node)
+                    par.parent.height = par.height + par.length
+                    par.istip = True
                 else:
-                    newroot = tree
-                par.length += node.length
-                par.height = node.height
-                par.num_occurrences = node.num_occurrences
-                old_length = node.length
-                par.remove_child(node)
-                par.istip = True
-                par.children[0].length -= old_length 
-    
+                    par.length += node.length
+                    par.height = node.height
+                    par.num_occurrences = node.num_occurrences
+                    old_length = node.length
+                    par.remove_child(node)
+                    par.istip = True
+                    par.children[0].length -= old_length 
     #print newroot.get_newick_repr(True) 
-    return newroot         
+    return tree         
 
 
 def read_partition_file(fl): #reads RAxML style partition file
     parts = open(fl,"r")
-    sitels = []
+    sites = {}
     for i in parts:
         ls = i.strip().split("=")
         lss = ls[1].strip().split("-")
+        numstates = int(ls[0].strip().split(",")[1].strip())
         st = int(lss[0])
         end = int(lss[1])
-        sitels.append((st,end))
+        sites[numstates] = (st,end)
+        #sites.append((st,end))
     parts.close()
-    return sitels
+    return sites
 
 def init_heights_strat(tree,fixed_root=False):
     for i in tree.iternodes(order=1):

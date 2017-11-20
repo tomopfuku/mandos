@@ -19,16 +19,17 @@ ctypedef np.double_t DTYPE_t
 
 cdef double LARGE = 10000000000.0
 
-def calc_mk_like(sitels,tree,seqs,optimize=False,random_start = True):
+def calc_mk_like(sitels,tree,seqs,optimize=False,random_start = True,numstates=None):
     site_liks = []
-    for i in range(len(sitels)):
+    numparams = 0
+    for i in sitels:
         cur_sites = sitels[i]
         cur_st = cur_sites[0]-1
         cur_end = cur_sites[1]
-        if i+1 == 1:
-            state_space = 2
+        if numstates == None:
+            state_space = i
         else:
-            state_space = i+1
+            state_space = numstates
         match_tips_and_seqs(tree,seqs)
         
         # set rmatrix and base freqs with Mk rate = 1.0
@@ -41,8 +42,9 @@ def calc_mk_like(sitels,tree,seqs,optimize=False,random_start = True):
             
             #optimize brlens
             res = optimize_brlen(tree,range(cur_st,cur_end),rmatrix,basefreq,random_start)
-            site_liks.append(res[1])
-    return -sum(site_liks)
+            site_liks.append(res[0][1])
+            numparams += res[1]
+    return [-sum(site_liks),numparams]
 
 def match_tips_and_seqs(tree,seqs):
     lvs = [i for i in tree.iternodes() if i.label != ""]
@@ -179,9 +181,10 @@ def optimize_brlen(tree,sites,rmatrix,basefreq,random_start=False,alpha=None,cat
             if random_start == True:
                 i.length = random.uniform(0,0.3)
             blstart.append(i.length)               
+    print "optimizing "+str(len(blstart)) +" parameters under Mk"
     res = fmin_bfgs(calc_params_treebl,blstart,args=(tree,sites,rmatrix,basefreq,alpha,cats),full_output=True,disp=False)
     #print tree.get_newick_repr(True)
-    return res
+    return [res,len(blstart)]
 
 def calc_params_treebl_uni(param,br_num,tree,sites,rmatrix,basefreq,alpha=None,cats=None):
     if param[0] < 0:

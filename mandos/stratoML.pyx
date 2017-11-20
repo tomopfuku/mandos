@@ -134,7 +134,7 @@ def optim_lambda_heights(object tree,dict strat,verbose = False):
     start = np.array(x)
     opt = optimize.fmin_powell(calc_like_strat,start,args=(tree,strat),full_output = True, disp = verbose)
     #tree_utils.assign_node_heights(opt[0][1:],tree)
-    return [tree,opt]
+    return [tree,opt,len(start)]
 
 def calc_like_lambda(p,tree,strat): #p[0] should be lambda, p[1:] is node heights
     for i in p:

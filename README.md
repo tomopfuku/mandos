@@ -7,7 +7,6 @@
 Should be able to just run:
 
         python setup.py build_ext --inplace
-        python setup.py build
         python setup.py install
 
 # Reading data into MANDOS
@@ -39,10 +38,13 @@ Handling of continuous traits is a bit of a mess right now, but will be sorted s
 
 It is probably sensible to specify a separate substitution matrix for each state space represented in the data (eg., binary vs. 3-state). You can do this by writing a RAxML-style partitions file:
 
-        part0,1-10
-        part1,11-20
+        MODEL, NSTATES, START-STOP
 
-There should be a script in the scripts/ folder that can sort traits and generate this file. You can now read in these partitions like:
+e.g.,
+        MULTI, 2 = 1-10
+        MULTI, 3 = 11-20
+
+Where the model should follow RAxML nomenclature (usually "MULTI" for discrete morphological data), and the NSTATES should be the 'state-space' of the partiton (e.g., "2" for binary characters). There should be a script in the scripts/ folder that can sort traits and generate this file. You can now read in these partitions like:
 
         sitels = mandos.tree_utils2.read_partition_file("examples/cetaceans/cetacean.phy.models")
 
@@ -87,8 +89,9 @@ Branch length optimization is currently really slow. This should improve as I co
 
 For good measure, here are the arguments:
 
-        calc_mk_like(sitels,tree,seqs,optimize=False,random_start = True)
+        calc_mk_like(sitels,tree,seqs,optimize=False,random_start = True,numstates = None)
 
+You always need to specify a partitions file, but if you want to analyse all of the traits under a single transition matrix, you can just specify the maximum number of states present in the matrix under the numstates argument and place all of the traits into a single partition. 
 
 ### Morphological likelihood on sampled ancestor trees
 
@@ -97,7 +100,7 @@ We can also calculate the character likelihood on a tree containing sampled (dir
         mandos.tree_utils2.make_ancestor(tree, *tax_name*)
         morpholike = mandos.tree_likelihood_calculator.calc_mk_like(sitels,tree,seqs,True)
 
-If you are comparing between anagenetic and cladogenetic arrangements, you can prune out the relevant subtree to speed up optimization
+If you are comparing between anagenetic and cladogenetic arrangements, you can prune out the relevant subtree to speed up the test
 
         subtree = mandos.tree_utils2.prune_SA(tree,["tax1","tax2","tax3"])
 
@@ -115,10 +118,14 @@ the last argument should be the number of parameters (_k_). _k_ = 1 for each par
 
 ![alt text](examples/likelihood.png "likelihood calculation on a single character")
 
-
 ## Combining character and stratigraphic data
 
 We might want to evaluate trees using both stratigraphic and character data.
+
+When combining, the number of parameters (_k_) should be
+        
+        num_nodes+num_tips + num_branch_lengths + morph_parameters + strat_parameters
+
 
 
 
