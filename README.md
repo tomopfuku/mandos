@@ -1,10 +1,17 @@
 # MANDOS
 
-**M**aking and **AN**alysing **D**endrograms from **O**ccurrences in **S**tratigraphy
+**M**aking and **AN**alysing **D**endrograms from **O**ccurrences of **S**tratigraphy
+
+(it is a stretch, but I like Tolkien, so deal with it)
+
 
 # Setting up
 
-Should be able to just run:
+Pull the repo from GitHub in a sensible directory:
+
+        git clone https://github.com/carolinetomo/mandos.git
+
+After navigating to the main directory, should be able to just run (Linux or Mac):
 
         python setup.py build_ext --inplace
         python setup.py install
@@ -25,6 +32,8 @@ Stratigraphic range files should be tab-separated text arranged like:
 These can be read in like:
 
         ranges = mandos.tree_utils2.read_strat("examples/cetaceans/cetacean.strat")
+
+If a taxon occurs at only one site/locality/whatever, you can set the FAD and LAD to the same, and num_occurrences to 1.
 
 ## Character data
 
@@ -58,12 +67,12 @@ Obviously, need to import
 
         import mandos
 
-After reading in your tree and range data, we want to match the ranges to the tree object and initialise the heights and branch lengths:
+After reading in your tree and range data, we want to match the ranges to the tree object and scale the branch lengths to the ranges provided in the file:
 
         mandos.tree_utils2.match_strat(tree,ranges)
         mandos.tree_utils2.init_heights_strat(tree)
 
-We can then optimize the node heights and calculate the stratigraphic likelihood using the preservation model of Huelsenbeck and Rannala 1997:
+We can then optimize the node heights and calculate the stratigraphic likelihood using the preservation model of Huelsenbeck and Rannala (1997):
 
         opt = mandos.stratoML.optim_lambda_heights(tree,ranges)
 
@@ -86,7 +95,7 @@ if we want to optimize branch lengths:
 
         morpholike = mandos.tree_likelihood_calculator.calc_mk_like(sitels,tree,seqs,True)
 
-Branch length optimization is currently really slow. This should improve as I continue the move to Cython and optimize things a bit.
+Branch length optimization is currently really slow. This should improve as I continue the move to Cython and optimize things a bit. Branch length optimization is also a difficult task, and so the optimizers don't always converge upon the true global optimum. If using this feature for comparative tests, you would be well-advised to do a couple runs and take the best to make sure your likelihood is really as good as it can be (it often isnt!). 
 
 For good measure, here are the arguments:
 
@@ -127,6 +136,6 @@ When combining, the number of parameters (_k_) should be
         
         num_nodes+num_tips + num_branch_lengths + morph_parameters + strat_parameters
 
-
+Note that this is _kind_ of like tip-dating, but the dates only reflect observed stratigraphic ranges, since the ML under the implemented model node heights move as close to the FADs and LADs as is possible given a particular tree shape.
 
 
