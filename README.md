@@ -7,7 +7,7 @@
 
 # Setting up
 
-Pull the repo from GitHub in a sensible directory:
+Clone the repo in a sensible directory:
 
         git clone https://github.com/carolinetomo/mandos.git
 
