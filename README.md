@@ -40,7 +40,8 @@ It is probably sensible to specify a separate substitution matrix for each state
 
         MODEL, NSTATES, START-STOP
 
-e.g.,
+for example:
+        
         MULTI, 2 = 1-10
         MULTI, 3 = 11-20
 
