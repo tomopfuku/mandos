@@ -76,6 +76,10 @@ We can then optimize the node heights and calculate the stratigraphic likelihood
 
         opt = mandos.stratoML.optim_lambda_heights(tree,ranges)
 
+This will give us a Python list with the following elements:
+
+        [tree, optimizer_output, num_parameters]
+
 ### Stratigraphic likelihood on sampled ancestor trees
 
 We might want to calculate the stratigraphic likelhood on a tree that containes direct ancestor-descendant relationships. Note that the height initialisation currently doesn't work well with these types of trees, so it is currently best to read in a fully bifurcating tree and collapse the nodes in MANDOS manually. This can be done like:
@@ -89,11 +93,13 @@ the *tax_name* can be either a single taxon or a comma-separated series (entered
 
 After having read in character data and partitions (if applicable), we can calculate their likelihood along a tree and optimize branch lengths if we wish.
 
-        morpholike = mandos.tree_likelihood_calculator.calc_mk_like(sitels,tree,seqs,False)
+        morphopt = mandos.tree_likelihood_calculator.calc_mk_like(sitels,tree,seqs,False)
 
 if we want to optimize branch lengths:
 
-        morpholike = mandos.tree_likelihood_calculator.calc_mk_like(sitels,tree,seqs,True)
+        morphopt = mandos.tree_likelihood_calculator.calc_mk_like(sitels,tree,seqs,True)
+
+This will output a list, with the log-likelihood in the first position, and the number of paramters that have been optimized in the second position.
 
 Branch length optimization is currently really slow. This should improve as I continue the move to Cython and optimize things a bit. Branch length optimization is also a difficult task, and so the optimizers don't always converge upon the true global optimum. If using this feature for comparative tests, you would be well-advised to do a couple runs and take the best to make sure your likelihood is really as good as it can be (it often isnt!). 
 
@@ -118,11 +124,13 @@ The first argument should be the tree, and the second should be the list of taxa
 
 Can then calculate the likelihood and optimize branch lengths:
 
-        morpholike = mandos.tree_likelihood_calculator.calc_mk_like(sitels,subtree,seqs,True)
+        morphopt = mandos.tree_likelihood_calculator.calc_mk_like(sitels,subtree,seqs,True)
+        morpholike = morphopt[0]
 
 When weighing between cladogenetic and anagenetic trees, we need to use something like AIC to account for the difference in parameters:
 
-        print mandos.tree_utils2.tree_AIC(subtree,morpholike,1)
+        nparams = morphopt[1]
+        print mandos.tree_utils2.(morpholike,nparams)
 
 the last argument should be the number of parameters (_k_). _k_ = 1 for each partition in the analyses when using Mk or single rate Brownian motion. 
 
@@ -136,6 +144,6 @@ When combining, the number of parameters (_k_) should be
         
         num_nodes+num_tips + num_branch_lengths + morph_parameters + strat_parameters
 
-Note that this is _kind_ of like tip-dating, but the dates only reflect observed stratigraphic ranges, since the ML under the implemented model node heights move as close to the FADs and LADs as is possible given a particular tree shape.
+Note that this is _kind of_ like tip-dating, but the dates only reflect observed stratigraphic ranges, since the ML under the implemented model node heights move as close to the FADs and LADs as is possible given a particular tree shape. I also don't implement a clock model, so morphological data won't contribute to the dates
 
 
