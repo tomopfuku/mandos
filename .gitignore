@@ -3,6 +3,7 @@
 *swp
 *phyx*
 build/
+tests
 *.c
 *.so
 *.html

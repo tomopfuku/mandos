@@ -29,7 +29,8 @@ for i in fl:
                 start = True
 
 
-partitions = [[],[],[],[],[],[],[]]
+partitions = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
+
 for i in sites.keys():
     seen = []
     for j in sites[i]:
@@ -59,15 +60,16 @@ total_len = 0
 for i in range(len(partitions[1:])):
     if len(partitions[i]) == 0:
         continue
-    part_fl.write("MK, part"+str(i)+" = "+str(last)+"-"+str( len(partitions[i])+total_len)+"\n")
-    last = len(partitions[i])+1
+    part_fl.write("MULTI, part"+str(i)+" = "+str(last)+"-"+str( len(partitions[i])+total_len)+"\n")
+    last += len(partitions[i])
     total_len+=len(partitions[i])
     for j in partitions[i]:
         for k in range(len(j)):
             seqs[taxon_ls[k]] += j[k]
 part_fl.close()
 
-print str(len(taxon_ls))+"\t"+str(len(seq))
+mat_out = open(".".join(sys.argv[1].split(".")[0:-1])+".stateparts.phy","w")
+mat_out.write(str(len(taxon_ls))+"\t"+str(len(seq))+"\n")
 for i in seqs.keys():
     #a = True
-    print i+"\t"+seqs[i]
+    mat_out.write(i+"\t"+seqs[i]+"\n")
