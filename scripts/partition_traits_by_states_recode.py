@@ -31,23 +31,24 @@ for i in fl:
 
 partitions = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
 
-for i in sites:
-    seen = [int(s) for s in list(set(sites[i])) if s != "-"]
-    nstates = max(seen)+1
+for i in sites.keys():
+    seen = []
+    for j in sites[i]:
+        if j not in seen and j != "-":
+            seen.append(j)
+    nstates = len(seen)
     dic = {}
-    #for j in range(len(seen)):
-    #    dic[seen[j]] = j
-    #new_seq = ""
-    new_seq = sites[i]
-    """
+    for j in range(len(seen)):
+        dic[seen[j]] = j
+    new_seq = ""
     for j in sites[i]:
         if j != "-":
             new_char = dic[j]
         else:
             new_char = j
         new_seq += str(new_char)   
-    """
     partitions[nstates].append(new_seq)
+
 #print partitions[1:]
 seqs = {}
 for i in taxon_ls:

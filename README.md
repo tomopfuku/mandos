@@ -47,14 +47,14 @@ Handling of continuous traits is a bit of a mess right now, but will be sorted s
 
 It is probably sensible to specify a separate substitution matrix for each state space represented in the data (eg., binary vs. 3-state). You can do this by writing a RAxML-style partitions file:
 
-        MODEL, NSTATES, START-STOP
+        DATA_TYPE, NSTATES, START-STOP
 
 for example:
         
         MULTI, 2 = 1-10
         MULTI, 3 = 11-20
 
-Where the model should follow RAxML nomenclature (usually "MULTI" for discrete morphological data), and the NSTATES should be the 'state-space' of the partiton (e.g., "2" for binary characters). There should be a script in the scripts/ folder that can sort traits and generate this file. You can now read in these partitions like:
+Where the data type should follow RAxML nomenclature (usually "MULTI" for discrete morphological data), and the NSTATES should be the 'state-space' of the partiton (e.g., "2" for binary characters). There are two scripts in the scripts/ folder that can sort traits and generate this file. Alternatively, you can analyse your data under a single substitution matrix by making a partitions file that assigns all of the sites to a single partition, with the maximum number of possible states occupying the NSTATES column. You can now read in these partitions like:
 
         sitels = mandos.tree_utils2.read_partition_file("examples/cetaceans/cetacean.phy.models")
 
