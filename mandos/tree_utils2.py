@@ -4,7 +4,7 @@ from node2 import Node
 from sequence import Sequence
 from copy import deepcopy
 import sys
-import rearrange
+#import rearrange
 import numpy as np
 
 def aic(log_likelihood,model_param_count):
