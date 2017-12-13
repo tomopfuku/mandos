@@ -7,6 +7,10 @@
 
 # Setting up
 
+Dependencies:
+
+Mandos needs SciPy, NumPy and Cython to run. These can be installed using standard package managers (pip, apt, brew, etc).
+
 Clone the repo in a sensible directory:
 
         git clone https://github.com/carolinetomo/mandos.git

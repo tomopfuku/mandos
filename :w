@@ -5,7 +5,6 @@ from sequence import Sequence
 from copy import deepcopy
 import sys
 import rearrange
-import numpy as np
 
 def aic(log_likelihood,model_param_count):
     k =  model_param_count
@@ -223,13 +222,12 @@ def assign_branch_nums(tree):
         num +=1
 
 def assign_brlens(l,tree):
-    count = 0
     for i in tree.iternodes(order = 0):
         if i.parent == None:
             continue
-        if l[i.number] < 0.00001 :
-            return True
         i.length = l[i.number]
+        if i.length < 0 :
+            return True
     return False
 
 def assign_node_heights(h,tree,fixed_root=False):
@@ -300,44 +298,16 @@ def read_tree(in_tree,nwk=False):
         i.old_length = i.length
     return tree
 
-def read_continuous(traitfl,tree): #should be phylip formatted
+def read_continuous(traitfl): #should be phylip formatted
     traits = {}
-    op = open(traitfl,"r")
-    firstline = op.readline()
-    fspls = firstline.strip().split()
-    try:
-        ntax = int(fspls[0])
-        ntraits = int(fspls[1])
-    except:
-        print "ERROR: trouble reading the header. continuous traits should be phylip formatted and tab separated"
-        print "can't read:"
-        print firstline
-        sys.exit(0)
-    for i in op:
+    for i in open(traitfl,"r"):
         if i == "":
             continue
         spls = i.strip().split("\t")
         nm = spls[0]
-        traitls = [] 
-        for j in spls[1:]:
-            try:
-                cur = float(j)
-                traitls.append(j)
-            except:
-                if j == "?" or j == "-":
-                    traitls.append(1000000000.0)
-                else:
-                    print "something is wrong with the data. these traits cannot be read as continuous."
-                    print "cannot read starting at line:"
-                    print i
-                    sys.exit(0)
-        
-        trait_array = np.array(traitls,dtype=np.double)
-        traits[nm]= trait_array
-    for node in tree.leaves():
-        node.cont_traits = traits[node.label]
-    return (ntax,ntraits)
-    #return traits
+        traitls = spls[1:]
+        traits[nm]= traitls
+    return traits
 
 def prune_tip(tree,tip_name):
     for node in tree.iternodes():
@@ -395,6 +365,42 @@ def prune_node(tree,node):
         elif len(node.children) > 0:
             print "you haven't yet implemented continuous trait likelhoods for SA trees!!"
             return tree
+
+
+
+def prune_node(tree,node): #node should be mandos node2.Node() object. if not, use prune_tip()
+    if len(node.children) == 0: #node is not a SA
+        if node.parent == tree:
+            par = node.parent
+            for c in par.children:
+                if c != node:
+                    par.remove_child(c)
+                    return c
+        else:
+            par = node.parent
+            gpar = par.parent
+            par.remove_child(node)
+            c = par.children[0]
+            c.length += par.length
+            par.remove_child(c)
+            gpar.remove_child(par)
+            #print c.label
+            gpar.add_child(c)
+            """
+            for c in par.children:
+                if c != node:
+                    sib = c
+            #sib.parent = gpar
+            gpar.add_child(sib)
+            sib.length += par.length
+            par.remove_child(sib)
+            gpar.remove_child(par)
+            """
+            return tree
+    elif len(node.children) > 0:
+        print "you haven't yet implemented continuous trait likelhoods for SA trees!!"
+        return tree
+
 
 
 def assign_sigsq(tree,sigsq=[1.0]):

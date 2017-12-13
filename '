@@ -71,10 +71,10 @@ def calc_like_brlens(l,tree,ntraits,sigsq = 1.):
         return LARGE
     return ll
 
-def calc_like_single_brlen(bl,node,tree,ntraits,sigsq=1.):
+def calc_like_single_brlen(bl,branch_num,tree,ntraits,sigsq=1.):
     #if bl[0] < 0.00001:
     #    return LARGE
-    bad = node.update_child_brlens(bl)
+    bad = tree.update_brlens_single(bl,branch_num)
     if bad:
         return LARGE
     try:
@@ -83,37 +83,14 @@ def calc_like_single_brlen(bl,node,tree,ntraits,sigsq=1.):
         return LARGE
     return ll
 
-def calc_like_single_conditional_brlen(bl,node,tree,ntraits,sigsq=1.):
-    #if bl[0] < 0.00001:
-    #    return LARGE
-    bad = node.update_child_brlens(bl)
-    if bad:
-        return LARGE
-    try:
-        ll = -calc_bm_likelihood.bm_prune(tree,ntraits,sigsq)
-    except:
-        return LARGE
-    return ll
-
-def bm_single_brlen_optim(tree,ntraits,sigsq=1.,alg="Powell"):
+def bm_single_brlen_optim(tree,ntraits,sigsq=1.):
     count = 0
-    for node in tree.iternodes(order=1):
-        if node.istip:
-            #count += 1
+    for node in tree.iternodes():
+        if node == tree:
+            count += 1
             continue
-        start = np.array([child.length for child in node.children],dtype=np.double)
-        if alg == "Powell": 
-            opt = optimize.minimize(calc_like_single_brlen,start,args=(node,tree,ntraits,sigsq), method = "Powell")#,bounds=((0.00001,1000.),(0.00001,1000.)))
-        elif alg == "SLSQP":
-            opt = optimize.minimize(calc_like_single_brlen,start,args=(node,tree,ntraits,sigsq), method = "SLSQP",bounds=((0.00001,1000.),(0.00001,1000.)))
-        elif alg == "L-BFGS-B":
-            opt = optimize.minimize(calc_like_single_brlen,start,args=(node,tree,ntraits,sigsq), method = "L-BFGS-B",bounds=((0.00001,1000.),(0.00001,1000.)))
-
-        #print opt.x
-        ccount = 0
-        for child in node.children:
-            child.length = opt.x[ccount]
-            ccount+=1
+        start = np.array([node.length],dtype=np.double)
+        opt = optimize.minimize(calc_like_single_brlen,start,args = (count,tree,ntraits,sigsq), method = "BFGS")
         count += 1
     return [tree.get_newick_repr(True),opt]
 

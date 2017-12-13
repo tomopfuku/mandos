@@ -1,11 +1,5 @@
 import sys,os
 
-"""
-This is a barebones class for sequences. These
-can be aligned or not and can be any type of alphabet.
-Author: Stephen Smith: eebsmith@umich.edu
-"""
-
 class Sequence:
 	def __init__(self,name="",seq=""):
 		self.name = name

@@ -1,16 +1,22 @@
 #from libcpp cimport bool
+from copy import deepcopy
+import numpy as np
 
-PREORDER = 0; POSTORDER = 1
-BRANCHLENGTH = 0; INTERNODES = 1
+cdef:
+    unsigned int PREORDER = 0
+    unsigned int POSTORDER = 1
+    #unsigned int BRANCHLENGTH = 0
+    #unsiINTERNODES = 1
 
 cdef class Node:
     cdef public dict data
     cdef public bint isroot,istip
     cdef public double height,length,old_length,upper,lower,charst,sigsq
     cdef public unsigned int nchildren, number,num_occurrences,rate_class
-    cdef public str label,
+    cdef public str label
     cdef public object parent
     cdef public list children
+    cdef public double[:] cont_traits
 
     def __init__(self):
         self.data = {}
@@ -31,7 +37,29 @@ cdef class Node:
         self.upper = 0.0
         self.lower = 0.0
         self.num_occurrences = 0
-
+        self.cont_traits = np.array([],dtype=np.double)
+    """
+    def __deepcopy__(self,memo):
+        res = Node(self)
+        res.data = deepcopy(self.data,memo)
+        res.isroot = self.isroot
+        res.istip = self.istip 
+        res.label = deepcopy(self.label,memo)
+        res.length = self.length
+        res.old_length = self.old_length
+        res.parent = deepcopy(self.parent,memo)
+        res.children = deepcopy(self.children,memo)
+        res.nchildren = self.nchildren
+        res.charst = self.charst
+        res.sigsq = self.sigsq
+        res.rate_class = self.rate_class
+        res.height = self.height
+        res.number = self.number
+        res.upper = self.upper
+        res.lower = self.lower 
+        res.num_occurrences = self.num_occurrences
+        return res
+    """
     def get_newick_repr(self,showbl=False,show_rate=False):
         ret = ""
         for i in range(len(self.children)):
@@ -50,17 +78,18 @@ cdef class Node:
             ret += ":" + str(self.sigsq)
         return ret
 
-    def add_child(self, child):
+    def add_child(self, object child):
         assert child not in self.children
         self.children.append(child)
         child.parent = self
         self.nchildren += 1
 
-    def remove_child(self, child):
+    def remove_child(self, object child):
         assert child in self.children
         self.children.remove(child)
         child.parent = None
         self.nchildren -= 1
+
 
     def prune_from_node(self):
         for i in self.descendants("POSTORDER"):
@@ -70,7 +99,10 @@ cdef class Node:
     def leaves(self):
         return [ n for n in self.iternodes() if n.istip ]
 
-    def iternodes(self, order=PREORDER, v=None):
+    def iternodes(self, unsigned int order=PREORDER):#, v=None):
+        cdef:
+            object child, d
+
         if order == PREORDER:
             yield self
         #print [i.label for i in self.children] 
@@ -93,6 +125,60 @@ cdef class Node:
             if child.children:
                 child.descendants(order, v)
         return v
+
+    cpdef bint update_brlens_all(self, double[:] mv):
+        cdef:
+            object node
+            unsigned int count 
+            double min_bound = 0.000001
+            double i,curlen
+        
+        #check variables to see that they are >0 
+        for i in mv:
+            if i < min_bound:
+                return True
+        count = 0
+        for node in self.iternodes():
+            if node == self:
+                continue
+            curlen = mv[count]
+            node.length = curlen 
+            node.old_length = curlen
+            count += 1
+        return False
+
+    cpdef bint update_brlens_single(self, double[:] mv, unsigned int node_num):
+        cdef:
+            object node
+            unsigned int count
+        
+        count = 0
+        if mv[0] < 0.000001:
+            return True
+        for node in self.iternodes():
+            if count == node_num:
+                node.length = mv[0]
+                node.old_length= mv[0]
+            count += 1
+        return False
+
+    cpdef bint update_child_brlens(self, double[:] mv):
+        cdef:
+            object node
+            unsigned int count
+            double i
+
+        for i in mv:
+            if i < 0.00001:
+                return True
+        count = 0
+        for node in self.children:
+            node.length = mv[count]
+            node.old_length= mv[count]
+            count += 1
+        return False
+
+
 
     def find_descendant(self, label):
         if label == self.label:

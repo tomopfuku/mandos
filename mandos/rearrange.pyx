@@ -70,8 +70,8 @@ cpdef void fix_singleton(object node): #remove singleton node resulting from som
     c.parent = p
     p.children.append(c)
     p.length += node.length
-    node.label = "COFFEE"
-    p.label = "COFFEETIP"
+    #node.label = "COFFEE"
+    #p.label = "COFFEETIP"
     #p.children.remove(node)
 
 cpdef void random_spr(object tree): #TODO: fix issue with children of root

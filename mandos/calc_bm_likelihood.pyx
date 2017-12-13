@@ -4,54 +4,128 @@ from scipy import optimize
 import math
 from numpy import random
 import sys
+import tree_utils2
+import numpy as np
 
 cdef double LARGE = 1000000000.0
 
-cpdef double bm_prune(object tree, dict traits):
+cpdef double bm_prune(object tree, unsigned int mat_len, double sigsq = 1.0):
     cdef:
-        double like
-    like = c_bm_prune(tree,traits)
-    return like
+        double like,charst,tlike
+        unsigned int site
+        object node
+        list prune = []
+        str tip
+    like = 0.0
+    for site in range(mat_len):
+        if site > 4:
+            continue
+        prune = []
+        #old_tree = tree.get_newick_repr(True)+";"
+        #for j in tree.iternodes():
+        #    j.old_length = j.length        
+        for node in tree.iternodes():
+            if node.istip:
+                charst = node.cont_traits[site]
+                #if charst == LARGE:#"?" or val == "-":
+                #    prune.append(node.label)
+                #    continue
+                node.old_length = node.length
+                node.charst = charst
+        #for tip in prune:
+        #    tree_utils2.prune_tip(tree,tip)
+            #print tip,len(list(tree.leaves()))
+        #for j in tree.iternodes():
+        #    j.length = j.old_length
 
-cdef double c_bm_prune(object tree, dict traits, double sigsq = 1.0):
-    cdef:
-        double contrast,cur_var,curlike,temp_charst,temp_brlen,trait_likes = 0.0
-        double node_likes = 0.0
-        list child_charst 
-        unsigned int i,mat_len
-        object j
-    mat_len = len(traits.values()[0])
-    for i in range(mat_len):
-        #match_traits_tips(tree,traits,i)
-        for j in tree.iternodes():
-            if j.istip:
-                j.charst = traits[j.label][i]
-            j.old_length = j.length
-        for j in tree.iternodes(order=1):
-            if j.istip == False and j != tree:
-                child_charst = [k.charst for k in j.children]
-                brlens = [k.length for k in j.children]
-                contrast = child_charst[0]-child_charst[1]
-                cur_var = brlens[0]+brlens[1]
-                curlike =((-0.5)* ((math.log(2*math.pi*sigsq))+(math.log(cur_var))+(math.pow(contrast,2)/(sigsq*cur_var))))
-                node_likes += curlike
-                #temp_charst = (((1/brlens[0])*child_charst[0])+((1/brlens[1])*child_charst[1]))/((1/brlens[0])+(1/brlens[1]))
-                temp_charst = ((brlens[1]*child_charst[0])+(brlens[0]*child_charst[1]))/(sum(brlens))
-                temp_brlen = j.length+((brlens[0]*brlens[1])/(brlens[0]+brlens[1]))
-                j.charst = temp_charst
-                j.length = temp_brlen
-            elif j == tree:
-                child_charst = [k.charst for k in j.children]
-                brlens = [k.length for k in j.children]
-                contrast = child_charst[0]-child_charst[1]
-                cur_var = brlens[0]+brlens[1]
-                curlike =((-0.5)* ((math.log(2*math.pi*sigsq))+(math.log(cur_var))+(math.pow(contrast,2)/(sigsq*cur_var))))
-                node_likes += curlike
+        tlike = 0
+        tlike = c_bm_prune(tree,sigsq)
+        like += tlike
         for j in tree.iternodes():
             j.length = j.old_length
-        trait_likes += node_likes
-    #print -sum(trait_likes)
-    return trait_likes
+        #print "site:",site,tlike
+        #tree = tree_reader2.read_tree_string(old_tree)
+    #print like
+    return like
+
+
+"""
+cpdef double c_bm_opt(object tree, double sigsq = 1.0):
+    cdef:
+        double contrast,cur_var,curlike,temp_charst,temp_brlen,l_brlen,r_brlen,l_charst,r_charst
+        double node_likes = 0.0
+        #list child_charst 
+        unsigned int i
+        object j
+    for j in tree.iternodes(order=1):
+        if j.istip: 
+            continue
+        
+        bif_node_like(j)
+        node_likes += curlike
+        if j != tree:
+            temp_charst = ((r_brlen*l_charst)+(l_brlen*r_charst))/(cur_var)
+            temp_brlen = j.length+((l_brlen*r_brlen)/(l_brlen+r_brlen))
+            j.charst = temp_charst
+            j.length = temp_brlen
+    return node_likes
+
+cpdef void optim_single_node(object node, double sigsq):
+    cdef:
+        object child
+        double[:] start
+        list child_len
+
+    child_len = [child.length for child in node.children]
+    start = np.array(child_len,dtype=np.double)
+    opt = optimize.minimize(bif_node_like,start,args=(sigsq),method="Powell")
+    return opt
+
+
+cdef double bif_node_like(double[:] lengths, object j, double sigsq):
+    cdef:
+        double contrast,cur_var,loglike,l_brlen,r_brlen,l_charst,r_charst
+    
+    bad = j.update_child_brlens(lengths)
+    if bad:
+        return LARGE
+    try:
+        l_charst = j.children[0].charst
+        l_brlen = j.children[0].length
+        r_charst = j.children[1].charst
+        r_brlen = j.children[1].length
+        contrast = l_charst-r_charst 
+        cur_var = l_brlen+r_brlen
+        loglike =((-0.5)* ((math.log(2*math.pi*sigsq))+(math.log(cur_var))+(math.pow(contrast,2)/(sigsq*cur_var))))
+    except:
+        return LARGE
+    return loglike
+"""
+
+cpdef double c_bm_prune(object tree, double sigsq = 1.0):
+    cdef:
+        double contrast,cur_var,curlike,temp_charst,temp_brlen,l_brlen,r_brlen,l_charst,r_charst
+        double node_likes = 0.0
+        #list child_charst 
+        unsigned int i
+        object j
+    for j in tree.iternodes(order=1):
+        if j.istip: 
+            continue
+        l_charst = j.children[0].charst
+        l_brlen = j.children[0].length
+        r_charst = j.children[1].charst
+        r_brlen = j.children[1].length
+        contrast = l_charst-r_charst 
+        cur_var = l_brlen+r_brlen
+        curlike =((-0.5)* ((math.log(2*math.pi*sigsq))+(math.log(cur_var))+(math.pow(contrast,2)/(sigsq*cur_var))))
+        node_likes += curlike
+        if j != tree:
+            temp_charst = ((r_brlen*l_charst)+(l_brlen*r_charst))/(cur_var)
+            temp_brlen = j.length+((l_brlen*r_brlen)/(l_brlen+r_brlen))
+            j.charst = temp_charst
+            j.length = temp_brlen
+    return node_likes
 
 cpdef double sigsqML(object tree): #tree must already have characters mapped to tips using match_traits_tips()
     cdef:
