@@ -15,6 +15,7 @@ def bm_sigsq_optim(tree,traits,rate=1):
     opt = optimize.fmin_powell(calc_like_sigsq, start, args = (tree,traits),full_output=False,disp=True)
     return [tree.get_newick_repr(True),opt]
 
+
 def calc_like_sigsq(sigsq,tree,traits):
     if sigsq < 0:
         return LARGE
@@ -26,14 +27,15 @@ def calc_like_sigsq(sigsq,tree,traits):
     #print ht,val
     return val
 
+
 def bm_brlen_optim(tree,ntraits,method="bfgs",sigsq = 1.):
     #tree_utils2.assign_branch_nums(tree)
     start = np.array([i.length for i in tree.iternodes() if i != tree],dtype=np.double)
     start = np.array([1.0 for i in tree.iternodes() if i != tree],dtype=np.double)
-    #opt = optimize.fmin_powell(calc_like_brlens, start, args = (tree,ntraits,sigsq),disp=True)
+    
     opt = optimize.minimize(calc_like_brlens, start, args = (tree,ntraits,sigsq),method="Powell")
-    print opt.x
-    print tree.get_newick_repr(True)
+    #print opt.x
+    #print tree.get_newick_repr(True)
     count = 0
     for node in tree.iternodes():
         if node == tree:
@@ -41,6 +43,7 @@ def bm_brlen_optim(tree,ntraits,method="bfgs",sigsq = 1.):
         node.length = opt.x[count]
         count += 1
     return [tree.get_newick_repr(True),opt]
+
 
 def fix_bad_brlens(node):
     for i in node.iternodes():
@@ -58,6 +61,7 @@ def calc_like_sigsq_brlens(l,tree,ntraits):
         ll = -calc_bm_likelihood.bm_prune(tree,ntraits,l[0])
     except:
         return LARGE
+    print ll
     return ll
 
 def calc_like_brlens(l,tree,ntraits,sigsq = 1.):
@@ -103,7 +107,7 @@ def bm_single_brlen_optim(tree,ntraits,sigsq=1.,alg="Powell"):
             continue
         start = np.array([child.length for child in node.children],dtype=np.double)
         if alg == "Powell": 
-            opt = optimize.minimize(calc_like_single_brlen,start,args=(node,tree,ntraits,sigsq), method = "Powell")#,bounds=((0.00001,1000.),(0.00001,1000.)))
+            opt = optimize.minimize(calc_like_single_brlen,start,args=(node,tree,ntraits,sigsq), method = "Powell")
         elif alg == "SLSQP":
             opt = optimize.minimize(calc_like_single_brlen,start,args=(node,tree,ntraits,sigsq), method = "SLSQP",bounds=((0.00001,1000.),(0.00001,1000.)))
         elif alg == "L-BFGS-B":

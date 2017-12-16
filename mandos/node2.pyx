@@ -38,28 +38,7 @@ cdef class Node:
         self.lower = 0.0
         self.num_occurrences = 0
         self.cont_traits = np.array([],dtype=np.double)
-    """
-    def __deepcopy__(self,memo):
-        res = Node(self)
-        res.data = deepcopy(self.data,memo)
-        res.isroot = self.isroot
-        res.istip = self.istip 
-        res.label = deepcopy(self.label,memo)
-        res.length = self.length
-        res.old_length = self.old_length
-        res.parent = deepcopy(self.parent,memo)
-        res.children = deepcopy(self.children,memo)
-        res.nchildren = self.nchildren
-        res.charst = self.charst
-        res.sigsq = self.sigsq
-        res.rate_class = self.rate_class
-        res.height = self.height
-        res.number = self.number
-        res.upper = self.upper
-        res.lower = self.lower 
-        res.num_occurrences = self.num_occurrences
-        return res
-    """
+
     def get_newick_repr(self,showbl=False,show_rate=False):
         ret = ""
         for i in range(len(self.children)):
@@ -132,15 +111,22 @@ cdef class Node:
             unsigned int count 
             double min_bound = 0.000001
             double i,curlen
-        
+            bint fixed_tip = True 
+
         #check variables to see that they are >0 
         for i in mv:
             if i < min_bound:
                 return True
+        
         count = 0
         for node in self.iternodes():
             if node == self:
                 continue
+            elif fixed_tip == True and node.istip == True: #return LARGE if first tip not fixed
+                if mv[count] != 1.0:
+                    return True 
+                fixed_tip = False
+
             curlen = mv[count]
             node.length = curlen 
             node.old_length = curlen
@@ -171,7 +157,9 @@ cdef class Node:
         for i in mv:
             if i < 0.00001:
                 return True
+        
         count = 0
+        
         for node in self.children:
             node.length = mv[count]
             node.old_length= mv[count]

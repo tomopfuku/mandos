@@ -49,59 +49,6 @@ cpdef double bm_prune(object tree, unsigned int mat_len, double sigsq = 1.0):
     return like
 
 
-"""
-cpdef double c_bm_opt(object tree, double sigsq = 1.0):
-    cdef:
-        double contrast,cur_var,curlike,temp_charst,temp_brlen,l_brlen,r_brlen,l_charst,r_charst
-        double node_likes = 0.0
-        #list child_charst 
-        unsigned int i
-        object j
-    for j in tree.iternodes(order=1):
-        if j.istip: 
-            continue
-        
-        bif_node_like(j)
-        node_likes += curlike
-        if j != tree:
-            temp_charst = ((r_brlen*l_charst)+(l_brlen*r_charst))/(cur_var)
-            temp_brlen = j.length+((l_brlen*r_brlen)/(l_brlen+r_brlen))
-            j.charst = temp_charst
-            j.length = temp_brlen
-    return node_likes
-
-cpdef void optim_single_node(object node, double sigsq):
-    cdef:
-        object child
-        double[:] start
-        list child_len
-
-    child_len = [child.length for child in node.children]
-    start = np.array(child_len,dtype=np.double)
-    opt = optimize.minimize(bif_node_like,start,args=(sigsq),method="Powell")
-    return opt
-
-
-cdef double bif_node_like(double[:] lengths, object j, double sigsq):
-    cdef:
-        double contrast,cur_var,loglike,l_brlen,r_brlen,l_charst,r_charst
-    
-    bad = j.update_child_brlens(lengths)
-    if bad:
-        return LARGE
-    try:
-        l_charst = j.children[0].charst
-        l_brlen = j.children[0].length
-        r_charst = j.children[1].charst
-        r_brlen = j.children[1].length
-        contrast = l_charst-r_charst 
-        cur_var = l_brlen+r_brlen
-        loglike =((-0.5)* ((math.log(2*math.pi*sigsq))+(math.log(cur_var))+(math.pow(contrast,2)/(sigsq*cur_var))))
-    except:
-        return LARGE
-    return loglike
-"""
-
 cpdef double c_bm_prune(object tree, double sigsq = 1.0):
     cdef:
         double contrast,cur_var,curlike,temp_charst,temp_brlen,l_brlen,r_brlen,l_charst,r_charst
@@ -112,13 +59,19 @@ cpdef double c_bm_prune(object tree, double sigsq = 1.0):
     for j in tree.iternodes(order=1):
         if j.istip: 
             continue
+        """
         l_charst = j.children[0].charst
         l_brlen = j.children[0].length
         r_charst = j.children[1].charst
         r_brlen = j.children[1].length
         contrast = l_charst-r_charst 
         cur_var = l_brlen+r_brlen
-        curlike =((-0.5)* ((math.log(2*math.pi*sigsq))+(math.log(cur_var))+(math.pow(contrast,2)/(sigsq*cur_var))))
+        """
+        #curlike =((-0.5)* ((math.log(2*math.pi*sigsq))+(math.log(cur_var))+(math.pow(contrast,2)/(sigsq*cur_var))))
+        l = 0.
+        for child in j.children:
+            l += ((-0.5)*((math.log(2*math.pi*sigsq))+(math.log(child.length))+(math.pow(child.charst,2)/(sigsq*child.length))))
+        print l
         node_likes += curlike
         if j != tree:
             temp_charst = ((r_brlen*l_charst)+(l_brlen*r_charst))/(cur_var)
