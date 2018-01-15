@@ -10,13 +10,14 @@ cdef:
 
 cdef class Node:
     cdef public dict data
-    cdef public bint isroot,istip
+    cdef public bint isroot,istip,recalculate,marked,visited
     cdef public double height,length,old_length,upper,lower,charst,sigsq
     cdef public unsigned int nchildren, number,num_occurrences,rate_class
     cdef public str label
     cdef public object parent
     cdef public list children
     cdef public double[:] cont_traits
+    cdef public double contrast_length
 
     def __init__(self):
         self.data = {}
@@ -38,6 +39,10 @@ cdef class Node:
         self.lower = 0.0
         self.num_occurrences = 0
         self.cont_traits = np.array([],dtype=np.double)
+        self.contrast_length = 0.0
+        self.recalculate = True
+        self.marked = False
+        self.visited = False
 
     def get_newick_repr(self,showbl=False,show_rate=False):
         ret = ""
@@ -123,10 +128,8 @@ cdef class Node:
             if node == self:
                 continue
             elif fixed_tip == True and node.istip == True: #return LARGE if first tip not fixed
-                if mv[count] != 1.0:
-                    return True 
                 fixed_tip = False
-
+                continue
             curlen = mv[count]
             node.length = curlen 
             node.old_length = curlen
@@ -157,16 +160,12 @@ cdef class Node:
         for i in mv:
             if i < 0.00001:
                 return True
-        
         count = 0
-        
         for node in self.children:
             node.length = mv[count]
             node.old_length= mv[count]
             count += 1
         return False
-
-
 
     def find_descendant(self, label):
         if label == self.label:
@@ -206,10 +205,39 @@ cdef class Node:
                     n+=1
         return n
 
+    #this changes the trifurcating 'root' of an unrooted tree to self
+    cpdef object reroot(self,oldroot):
+        cdef:
+            list v
+            object newpar,newroot,node
+            unsigned int i
+        
+        if oldroot == self:
+            return self
+
+        self.isroot = True
+        oldroot.isroot = False
+        v = []
+        node = self
+        newroot = self
+        newpar = None
+        while 1:
+            v.append(node)
+            if not node.parent:
+                break
+            node = node.parent
+        v.reverse()
+        
+        for i in range(len(v[:-1])):
+            newpar = v[i+1]
+            curnode = v[i]
+            curnode.remove_child(newpar)
+            newpar.add_child(curnode)
+        return newroot
+
     """
     # this returns all possible NNIs for a single bifurcating node with bifurcating children
     # tree should probably be deep copied before using this
-    """
     def nni_set(self): 
         if len(self.children) != 2 or len(self.descendants()) < 3:
             print "this only works on bifurcating selfs that parent multiple subtrees (ie. does not lead to only terminal edges)"
@@ -247,4 +275,4 @@ cdef class Node:
         #print len(nni_trees)
         return nni_trees
 
-
+    """

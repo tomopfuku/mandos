@@ -7,6 +7,8 @@ import sys
 #import rearrange
 import numpy as np
 
+LARGE = 1000000000.0
+
 def aic(log_likelihood,model_param_count):
     k =  model_param_count
     aic = (2*k) - (2*(log_likelihood))
@@ -325,7 +327,7 @@ def read_continuous(traitfl,tree): #should be phylip formatted
                 traitls.append(j)
             except:
                 if j == "?" or j == "-":
-                    traitls.append(1000000000.0)
+                    traitls.append(LARGE)
                 else:
                     print "something is wrong with the data. these traits cannot be read as continuous."
                     print "cannot read starting at line:"
@@ -334,10 +336,19 @@ def read_continuous(traitfl,tree): #should be phylip formatted
         
         trait_array = np.array(traitls,dtype=np.double)
         traits[nm]= trait_array
-    for node in tree.leaves():
-        node.cont_traits = traits[node.label]
+    for node in tree.iternodes():
+        if node.istip:
+            node.cont_traits = traits[node.label]
+        else:
+            node.cont_traits = np.zeros(ntraits,dtype=np.double) #create empty arrays for internal (unknown) nodes
     return (ntax,ntraits)
     #return traits
+
+#this will just find the first tip and return the number of traits stored
+def get_num_traits(tree):
+    for i in tree.iternodes():
+        if i.istip:
+            return len(i.cont_traits)
 
 def prune_tip(tree,tip_name):
     for node in tree.iternodes():

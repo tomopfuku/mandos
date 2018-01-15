@@ -30,15 +30,29 @@ def calc_like_sigsq(sigsq,tree,traits):
 
 def bm_brlen_optim(tree,ntraits,method="bfgs",sigsq = 1.):
     #tree_utils2.assign_branch_nums(tree)
-    start = np.array([i.length for i in tree.iternodes() if i != tree],dtype=np.double)
-    start = np.array([1.0 for i in tree.iternodes() if i != tree],dtype=np.double)
-    
+    #start = np.array([i.length for i in tree.iternodes() if i != tree],dtype=np.double)
+    #start = np.array([1.0 for i in tree.iternodes() if i != tree],dtype=np.double)
+    start = []
+    fixed_tip = True
+    for node in tree.iternodes():
+        if node == tree:
+            continue
+        elif node.istip == True and fixed_tip == True:
+            node.length = 1.0
+            fixed_tip = False
+            continue
+        start.append(1.0)
+    start = np.array(start,dtype=np.double)
     opt = optimize.minimize(calc_like_brlens, start, args = (tree,ntraits,sigsq),method="Powell")
     #print opt.x
     #print tree.get_newick_repr(True)
     count = 0
+    fixed_tip = True
     for node in tree.iternodes():
         if node == tree:
+            continue
+        elif node.istip == True and fixed_tip == True:
+            fixed_tip = False
             continue
         node.length = opt.x[count]
         count += 1
@@ -61,7 +75,6 @@ def calc_like_sigsq_brlens(l,tree,ntraits):
         ll = -calc_bm_likelihood.bm_prune(tree,ntraits,l[0])
     except:
         return LARGE
-    print ll
     return ll
 
 def calc_like_brlens(l,tree,ntraits,sigsq = 1.):
