@@ -1,5 +1,5 @@
 import tree_reader2
-import tree_likelihood_calculator as tlc
+#import tree_likelihood_calculator as tlc
 from node2 import Node
 from sequence import Sequence
 from copy import deepcopy

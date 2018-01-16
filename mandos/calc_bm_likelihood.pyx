@@ -19,8 +19,8 @@ cpdef double bm_prune(object tree, unsigned int mat_len, double sigsq = 1.0):
         str tip
     like = 0.0
     for site in range(mat_len):
-        if site > 4:
-            continue
+        #if site > 4:
+        #    continue
         prune = []
         #old_tree = tree.get_newick_repr(True)+";"
         #for j in tree.iternodes():
@@ -31,7 +31,8 @@ cpdef double bm_prune(object tree, unsigned int mat_len, double sigsq = 1.0):
                 #if charst == LARGE:#"?" or val == "-":
                 #    prune.append(node.label)
                 #    continue
-                node.old_length = node.length
+                #node.old_length = node.length
+                node.contrast_length = node.length
                 node.charst = charst
         #for tip in prune:
         #    tree_utils2.prune_tip(tree,tip)
@@ -39,11 +40,11 @@ cpdef double bm_prune(object tree, unsigned int mat_len, double sigsq = 1.0):
         #for j in tree.iternodes():
         #    j.length = j.old_length
 
-        tlike = 0
+        tlike = 0.
         tlike = c_bm_prune(tree,sigsq)
         like += tlike
-        for j in tree.iternodes():
-            j.length = j.old_length
+        #for j in tree.iternodes():
+            #j.length = j.old_length
         #print "site:",site,tlike
         #tree = tree_reader2.read_tree_string(old_tree)
     #print like
@@ -61,9 +62,9 @@ cpdef double c_bm_prune(object tree, double sigsq = 1.0):
         if j.istip: 
             continue
         l_charst = j.children[0].charst
-        l_brlen = j.children[0].length
+        l_brlen = j.children[0].contrast_length
         r_charst = j.children[1].charst
-        r_brlen = j.children[1].length
+        r_brlen = j.children[1].contrast_length
         contrast = l_charst-r_charst 
         cur_var = l_brlen+r_brlen
         curlike =((-0.5)* ((math.log(2*math.pi*sigsq))+(math.log(cur_var))+(math.pow(contrast,2)/(sigsq*cur_var))))
@@ -72,7 +73,7 @@ cpdef double c_bm_prune(object tree, double sigsq = 1.0):
             temp_charst = ((r_brlen*l_charst)+(l_brlen*r_charst))/(cur_var)
             temp_brlen = j.length+((l_brlen*r_brlen)/(l_brlen+r_brlen))
             j.charst = temp_charst
-            j.length = temp_brlen
+            j.contrast_length = temp_brlen
     return node_likes
 
 """

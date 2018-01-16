@@ -19,7 +19,10 @@ for node in tree.iternodes():
 
 print tree.get_newick_repr(True)
 
-mandos.calc_bm_likelihood.iterate_lengths(tree,traits[1],1)
+print mandos.calc_bm_likelihood.bm_prune(tree,traits[1])
+mandos.calc_bm_likelihood.iterate_lengths(tree,traits[1],2)
+print mandos.calc_bm_likelihood.bm_prune(tree,traits[1])
+
 """
 for i in range(5):
     for node in tree.children:
