@@ -71,7 +71,7 @@ cpdef double c_bm_prune(object tree, double sigsq = 1.0):
         node_likes += curlike
         if j != tree:
             temp_charst = ((r_brlen*l_charst)+(l_brlen*r_charst))/(cur_var)
-            temp_brlen = j.length+((l_brlen*r_brlen)/(l_brlen+r_brlen))
+            temp_brlen = j.contrast_length+((l_brlen*r_brlen)/(l_brlen+r_brlen))
             j.charst = temp_charst
             j.contrast_length = temp_brlen
     return node_likes
