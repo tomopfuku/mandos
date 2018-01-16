@@ -234,35 +234,22 @@ cpdef void iterate_lengths(object tree, unsigned int ntraits, unsigned int itera
     cdef:
         object node,first_root,curroot,newroot
         unsigned int i,max_nodes,count
-    
+        list nodes = []
+
+    nodes = [node for node in tree.iternodes() if not node.istip]
     first_root = tree
     curroot = tree
     count = 0
     max_nodes = 10000
     max_nodes = tree.nnodes()
     for i in range(iterations):
-        count = 0
-        while count<=max_nodes:
-            count+=1
-            tree = curroot.reroot(tree)
+        for count in range(len(nodes)):
+            newroot = nodes[count]
+            tree = newroot.reroot(tree)
             for node in tree.children:
                 prune_to_rnode(node,ntraits)
             tritomy_ML(tree,ntraits)
-            tree.visited = True
-            #if newroot == first_root:
-            #    break
-            #if tree.visited:
-            #    tree = first_root.reroot(tree)
-            #    for node in tree.iternodes():
-            #        if node.visited == True:
-            #            node.visited = False
-            #    break
-            if count > max_nodes: #for safety
-                print "maximum number of possible nodes in tree exceeded"
-                break
-            newroot = pick_new_root(tree)
-            curroot = newroot
-
+    tree=first_root.reroot(tree)
 
 cpdef void tritomy_ML(object tree, unsigned int ntraits) except *: 
     cdef:
