@@ -6,3 +6,4 @@ from sim_fossils import *
 from branch_support import *
 from node2 import *
 from node_opt import *
+from fossils import *

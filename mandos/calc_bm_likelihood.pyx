@@ -1,4 +1,4 @@
-from tree_utils2 import * 
+from tree_utils2 import *
 import tree_reader2
 from scipy import optimize
 import math
@@ -24,7 +24,7 @@ cpdef double bm_prune(object tree, unsigned int mat_len, double sigsq = 1.0):
         prune = []
         #old_tree = tree.get_newick_repr(True)+";"
         #for j in tree.iternodes():
-        #    j.old_length = j.length        
+        #    j.old_length = j.length
         for node in tree.iternodes():
             if node.istip:
                 charst = node.cont_traits[site]
@@ -55,17 +55,17 @@ cpdef double c_bm_prune(object tree, double sigsq = 1.0):
     cdef:
         double contrast,cur_var,curlike,temp_charst,temp_brlen,l_brlen,r_brlen,l_charst,r_charst
         double node_likes = 0.0
-        #list child_charst 
+        #list child_charst
         unsigned int i
         object j
     for j in tree.iternodes(order=1):
-        if j.istip: 
+        if j.istip:
             continue
         l_charst = j.children[0].charst
         l_brlen = j.children[0].contrast_length
         r_charst = j.children[1].charst
         r_brlen = j.children[1].contrast_length
-        contrast = l_charst-r_charst 
+        contrast = l_charst-r_charst
         cur_var = l_brlen+r_brlen
         curlike =((-0.5)* ((math.log(2*math.pi*sigsq))+(math.log(cur_var))+(math.pow(contrast,2)/(sigsq*cur_var))))
         node_likes += curlike
@@ -84,21 +84,21 @@ cpdef void opt_brlen_all(object tree):
         return None
 """
 """
-This will be used to prune to the tritomy root of an unrooted tree. 
-This calculates the PICs and averaged branch lengths of any internal child branches so that we can estimate ML branch lengths analytically using a three-taxon tree. 
+This will be used to prune to the tritomy root of an unrooted tree.
+This calculates the PICs and averaged branch lengths of any internal child branches so that we can estimate ML branch lengths analytically using a three-taxon tree.
 """
 
 cpdef void prune_to_root(object tree, unsigned int ntraits):
     cdef:
         double contrast,cur_var,temp_charst,temp_brlen,l_brlen,r_brlen,l_charst,r_charst
-        #list child_charst 
+        #list child_charst
         unsigned int i
         object j,node
         #double trait
 
-    #for i in range(ntraits): 
+    #for i in range(ntraits):
     for j in tree.iternodes(order=1):
-        if j.istip or j == tree: 
+        if j.istip or j == tree:
             j.contrast_length = j.length
             continue
         for i in range(ntraits):
@@ -106,7 +106,7 @@ cpdef void prune_to_root(object tree, unsigned int ntraits):
             l_brlen = j.children[0].contrast_length
             r_charst = j.children[1].cont_traits[i]
             r_brlen = j.children[1].contrast_length
-            
+
             #calculate PIC for each trait and store in a vector for use at the root
             temp_charst = (((1/r_brlen)*r_charst)+((1/l_brlen)*l_charst))/((1/r_brlen)+(1/l_brlen))
             j.cont_traits[i] = temp_charst
@@ -118,7 +118,7 @@ cpdef void prune_to_root(object tree, unsigned int ntraits):
 """
 this will do the BM prune to any node on an unrooted tree, leaving a tritomy tree
 w/ BM adjusted branch lengths subtending
-TODO: need to add traits to prune_to_urnode() and prune_to_rnode() 
+TODO: need to add traits to prune_to_urnode() and prune_to_rnode()
 """
 cpdef void prune_to_urnode(object newroot, object tree, unsigned int ntraits):
     cdef:
@@ -129,7 +129,7 @@ cpdef void prune_to_urnode(object newroot, object tree, unsigned int ntraits):
         double[:] temp_traits = np.zeros(ntraits,dtype=np.float)
 
     check_unrooted(len(tree.children))
-    
+
     """
     go through each of the 3 children of the root and mark the subtree containing newroot
     also prune any branches subtending from newroot for later use
@@ -144,7 +144,7 @@ cpdef void prune_to_urnode(object newroot, object tree, unsigned int ntraits):
                 prune_to_rnode(c1,ntraits)
                 prune_to_rnode(c2,ntraits)
                 break
-    
+
     #now prune each of the other two subtrees
     for c in tree.children:
         if c.marked == True:
@@ -159,7 +159,7 @@ cpdef void prune_to_urnode(object newroot, object tree, unsigned int ntraits):
     for i in range(ntraits):
         nrsubtree.cont_traits[i] = temp_traits[i]/root_prune_length #switch directons
     root_prune_length = 1/root_prune_length
-    
+
     nrsubtree.contrast_length = nrsubtree.length
     nrsubtree.contrast_length += root_prune_length
 
@@ -211,6 +211,7 @@ cpdef void prune_to_rnode(object tree, unsigned int ntraits):
         c2 = node.children[1]
         bot = ((1/c1.contrast_length)+(1/c2.contrast_length))
         node.contrast_length += 1/bot
+        #print node.contrast_length
         for i in range(ntraits):
             temp_charst = (((1/c1.contrast_length)*c1.cont_traits[i])+((1/c2.contrast_length)*c2.cont_traits[i]))/bot
             node.cont_traits[i] = temp_charst
@@ -219,6 +220,8 @@ cpdef void prune_to_rnode(object tree, unsigned int ntraits):
 def check_unrooted(nchildren):
     if nchildren != 3:
         raise AssertionError("Branch lengths need to be estimated on unrooted trees!")
+
+
 
 cpdef object pick_new_root(object tree):
     cdef:
@@ -240,8 +243,6 @@ cpdef void iterate_lengths(object tree, unsigned int ntraits, unsigned int itera
     nodes = [node for node in tree.iternodes() if not node.istip]
     first_root = tree
     curroot = tree
-    count = 0
-    max_nodes = 10000
     max_nodes = tree.nnodes()
     for i in range(iterations):
         for count in range(len(nodes)):
@@ -250,22 +251,22 @@ cpdef void iterate_lengths(object tree, unsigned int ntraits, unsigned int itera
             for node in tree.children:
                 prune_to_rnode(node,ntraits)
             tritomy_ML(tree,ntraits)
-    tree=first_root.reroot(tree)
+        tree=first_root.reroot(tree)
 
-cpdef void tritomy_ML(object tree, unsigned int ntraits) except *: 
+
+cpdef void tritomy_ML(object tree, unsigned int ntraits) except *:
     cdef:
         double x1,x2,x3,v1,v2,v3,temp_v1,temp_v2,temp_v3
         unsigned int i
-   
+
     check_unrooted(len(tree.children))
     v1 = tree.children[0].length
     v2 = tree.children[1].length
-    v3 = tree.children[2].length 
+    v3 = tree.children[2].length
     temp_v1 = 0.0
     temp_v2 = 0.0
     temp_v3 = 0.0
-    #ntraits = 1
-    for i in range(ntraits): 
+    for i in range(ntraits):
         x1 = tree.children[0].cont_traits[i]
         x2 = tree.children[1].cont_traits[i]
         x3 = tree.children[2].cont_traits[i]
@@ -326,22 +327,22 @@ cpdef void node_ML(object tree, unsigned int ntraits):
     cdef:
         double x1,x2,x3,v1,v2,v3,temp_v1,temp_v2,temp_v3
         unsigned int i
-   
+
     v1 = tree.contrast_length
     v2 = tree.children[0].contrast_length
-    v3 = tree.children[1].contrast_length 
+    v3 = tree.children[1].contrast_length
     temp_v1 = 0.0
     temp_v2 = 0.0
     temp_v3 = 0.0
     #ntraits = 1
-    for i in range(ntraits): 
+    for i in range(ntraits):
         x1 = tree.cont_traits[i]
         x2 = tree.children[0].cont_traits[i]
         x3 = tree.children[1].cont_traits[i]
         temp_v1 += ((x1-x2)*(x1-x3))
         temp_v2 += ((x2-x1)*(x2-x3))
         temp_v3 += ((x3-x1)*(x3-x2))
-    
+
     if temp_v1 < 0.0:
         temp_v1 = 0.0001
         temp_v2 = 0.0

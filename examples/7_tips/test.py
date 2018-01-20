@@ -6,7 +6,9 @@ if len(sys.argv) != 3:
     sys.exit(0)
 
 tree = mandos.tree_utils2.read_tree(sys.argv[1])
-traits = mandos.tree_utils2.read_continuous(sys.argv[2],tree) #this will return (ntax,ntraits)
+traitdic = mandos.tree_utils2.read_continuous(sys.argv[2],tree) 
+traits = mandos.tree_utils2.map_continuous(tree,traitdic) #this will return (ntax,ntraits)
+
 
 root = tree
 for node in tree.iternodes():
@@ -17,52 +19,12 @@ for node in tree.iternodes():
     elif node.label == "a":
         rnode = node.parent
 
-print tree.get_newick_repr(True)
+#tree = mandos.fossils.root_tree(tree)[0]
+#print mandos.calc_bm_likelihood.bm_prune(tree,traits[1])
+#mandos.calc_bm_likelihood.iterate_lengths(tree,traits[1],2)
+#print mandos.calc_bm_likelihood.bm_prune(tree,traits[1])
 
-print mandos.calc_bm_likelihood.bm_prune(tree,traits[1])
-mandos.calc_bm_likelihood.iterate_lengths(tree,traits[1],2)
-print mandos.calc_bm_likelihood.bm_prune(tree,traits[1])
+mandos.fossils.place_fossils(tree,traitdic,["g"],traits[1])
 
-"""
-for i in range(5):
-    for node in tree.children:
-        mandos.calc_bm_likelihood.prune_to_rnode(node,traits[1])
-    mandos.calc_bm_likelihood.tritomy_ML(tree,traits[1])
-
-    tree = pnode.parent.reroot(tree)
-    for node in tree.children:
-        mandos.calc_bm_likelihood.prune_to_rnode(node,traits[1])
-    mandos.calc_bm_likelihood.tritomy_ML(tree,traits[1])
-
-    tree = pnode.reroot(tree)
-    for node in tree.children:
-        mandos.calc_bm_likelihood.prune_to_rnode(node,traits[1])
-    mandos.calc_bm_likelihood.tritomy_ML(tree,traits[1])
-
-    tree = p2node.reroot(tree)
-    for node in tree.children:
-        mandos.calc_bm_likelihood.prune_to_rnode(node,traits[1])
-    mandos.calc_bm_likelihood.tritomy_ML(tree,traits[1])
-
-    tree = rnode.reroot(tree)
-    for node in tree.children:
-        mandos.calc_bm_likelihood.prune_to_rnode(node,traits[1])
-    mandos.calc_bm_likelihood.tritomy_ML(tree,traits[1])
-    tree = root.reroot(tree)
-"""
-
-"""
-for node in tree.iternodes(order=1):
-    if node == tree:
-        for node in tree.children:
-            mandos.calc_bm_likelihood.prune_to_rnode(node,traits[1])
-        mandos.calc_bm_likelihood.tritomy_ML(tree,traits[1])
-        continue
-    elif node.istip:
-        continue
-    mandos.calc_bm_likelihood.prune_to_urnode(node,tree,traits[1])
-    mandos.calc_bm_likelihood.node_ML(node,traits[1])
-"""
-
-print tree.get_newick_repr(True)
+#print tree.get_newick_repr(True)
 

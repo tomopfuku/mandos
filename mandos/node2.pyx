@@ -89,7 +89,7 @@ cdef class Node:
 
         if order == PREORDER:
             yield self
-        #print [i.label for i in self.children] 
+        #print [i.label for i in self.children]
         for child in self.children:
             for d in child.iternodes(order):
                 yield d
@@ -113,16 +113,16 @@ cdef class Node:
     cpdef bint update_brlens_all(self, double[:] mv):
         cdef:
             object node
-            unsigned int count 
+            unsigned int count
             double min_bound = 0.000001
             double i,curlen
-            bint fixed_tip = True 
+            bint fixed_tip = True
 
-        #check variables to see that they are >0 
+        #check variables to see that they are >0
         for i in mv:
             if i < min_bound:
                 return True
-        
+
         count = 0
         for node in self.iternodes():
             if node == self:
@@ -131,7 +131,7 @@ cdef class Node:
                 fixed_tip = False
                 continue
             curlen = mv[count]
-            node.length = curlen 
+            node.length = curlen
             node.old_length = curlen
             count += 1
         return False
@@ -140,7 +140,7 @@ cdef class Node:
         cdef:
             object node
             unsigned int count
-        
+
         count = 0
         if mv[0] < 0.000001:
             return True
@@ -211,7 +211,7 @@ cdef class Node:
             list v
             object newpar,newroot,node
             unsigned int i
-        
+
         if oldroot == self:
             return self
 
@@ -219,30 +219,69 @@ cdef class Node:
         oldroot.isroot = False
         v = []
         node = self
-        newroot = self
-        newpar = None
+        #newroot = self
+
         while 1:
             v.append(node)
             if not node.parent:
                 break
             node = node.parent
         v.reverse()
-        
+        """
+        par=self.parent
+        print par
+        if par == None:
+            for n in oldroot.iternodes():
+                if self in n.children:
+                    print n.get_newick_repr()
+                    print [z.parent for z in n.children]
+            print oldroot.get_newick_repr()
+            print self.get_newick_repr()
+        """
+        newpar = None
         for i in range(len(v[:-1])):
             newpar = v[i+1]
             curnode = v[i]
             curnode.remove_child(newpar)
             newpar.add_child(curnode)
-        return newroot
+            curnode.length = newpar.length
+        self.length = 0.0
+        return self
+
+    cpdef object unroot_tree(self, object oldroot):
+        cdef:
+            object s
+
+        s = [i for i in self.children if i!=oldroot][0]
+        self.remove_child(oldroot)
+        self.remove_child(s)
+        oldroot.add_child(s)
+        s.length+=oldroot.length
+        oldroot.length = 0.
+        return oldroot
+
+    cpdef tuple root_tree(self):
+        cdef:
+            object newroot,c0
+
+        newroot = Node()
+        c0 = self.children[0]
+        self.remove_child(c0)
+        newroot.add_child(c0)
+        newroot.add_child(self)
+        c0.length = c0.length/2
+        self.length = c0.length
+        return (newroot,self)
+
 
     """
     # this returns all possible NNIs for a single bifurcating node with bifurcating children
     # tree should probably be deep copied before using this
-    def nni_set(self): 
+    def nni_set(self):
         if len(self.children) != 2 or len(self.descendants()) < 3:
             print "this only works on bifurcating selfs that parent multiple subtrees (ie. does not lead to only terminal edges)"
             return None
-        
+
         subtrees = []
 
         for child in self.children:
@@ -251,7 +290,7 @@ cdef class Node:
                 for sub in child.children:
                     subtrees.append(sub)
 
-        subtrees += [i for i in self.children if i.istip] #add terminal subtree child --> 'c' in (a,b),c)) 
+        subtrees += [i for i in self.children if i.istip] #add terminal subtree child --> 'c' in (a,b),c))
         assert len(subtrees) == 3 or len(subtrees) == 4
 
         nni_trees = []
@@ -259,7 +298,7 @@ cdef class Node:
             for c2 in subtrees:
                 p1 = c1.parent
                 p2 = c2.parent
-                if c1 == c2 or p1 == p2: #can't swap subtrees with same parent 
+                if c1 == c2 or p1 == p2: #can't swap subtrees with same parent
                     continue
 
                 p1.remove_child(c1)

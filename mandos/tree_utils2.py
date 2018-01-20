@@ -336,6 +336,11 @@ def read_continuous(traitfl,tree): #should be phylip formatted
         
         trait_array = np.array(traitls,dtype=np.double)
         traits[nm]= trait_array
+    return traits
+
+def map_continuous(tree,traits):
+    ntraits = len(traits.values()[0])
+    ntax = tree.nnodes("tips")
     for node in tree.iternodes():
         if node.istip:
             node.cont_traits = traits[node.label]
