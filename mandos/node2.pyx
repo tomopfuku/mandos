@@ -227,17 +227,7 @@ cdef class Node:
                 break
             node = node.parent
         v.reverse()
-        """
-        par=self.parent
-        print par
-        if par == None:
-            for n in oldroot.iternodes():
-                if self in n.children:
-                    print n.get_newick_repr()
-                    print [z.parent for z in n.children]
-            print oldroot.get_newick_repr()
-            print self.get_newick_repr()
-        """
+
         newpar = None
         for i in range(len(v[:-1])):
             newpar = v[i+1]
@@ -265,7 +255,7 @@ cdef class Node:
             object newroot,c0
 
         newroot = Node()
-        c0 = self.children[0]
+        c0 = self.children[2]
         self.remove_child(c0)
         newroot.add_child(c0)
         newroot.add_child(self)

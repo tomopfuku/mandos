@@ -306,11 +306,6 @@ cpdef void tritomy_ML(object tree, unsigned int ntraits) except *:
     v1 = temp_v1/ntraits
     v2 = temp_v2/ntraits
     v3 = temp_v3/ntraits
-    tree.children[0].length = v1
-    tree.children[1].length = v2
-    tree.children[2].length = v3
-    #print tree.get_newick_repr(True)
-    #print v1,v2,v3
     v1 = v1-(tree.children[0].contrast_length-tree.children[0].length)
     v2 = v2-(tree.children[1].contrast_length-tree.children[1].length)
     v3 = v3-(tree.children[2].contrast_length-tree.children[2].length)
@@ -320,6 +315,11 @@ cpdef void tritomy_ML(object tree, unsigned int ntraits) except *:
         v2 = 0.0001
     if v3 <= 0:
         v3 = 0.0001
+    tree.children[0].length = v1
+    tree.children[1].length = v2
+    tree.children[2].length = v3
+    #print tree.get_newick_repr(True)
+    #print v1,v2,v3
 
 
 

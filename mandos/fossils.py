@@ -30,8 +30,8 @@ def place_fossils(tree, traits, fossil_names,ntraits):
             rr = tree.root_tree()
             tree = rr[0]
             curlike = calc_bm_likelihood.bm_prune(tree,ntraits)
-            print curlike,tree.get_newick_repr(True)
             tree = tree.unroot_tree(rr[1])
+            print curlike,tree.get_newick_repr(True)
             if curlike > curbest:
                 curbest = curlike
                 curtree = tree.get_newick_repr(True)
